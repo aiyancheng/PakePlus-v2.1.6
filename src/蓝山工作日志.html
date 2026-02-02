@@ -517,7 +517,7 @@
     <div class="admin-modal-content">
       <h2 id="adminModalTitle">请输入管理密码</h2>
       <input type="password" id="adminPasswordInput" placeholder="输入管理密码" autocomplete="off" />
-      <div class="error" id="admin123"></div>
+      <div class="error" id="adminErrorMessage"></div>
       <div class="admin-modal-buttons">
         <button class="admin-modal-btn admin-cancel-btn" onclick="closeAdminModal()">取消</button>
         <button class="admin-modal-btn admin-confirm-btn" onclick="verifyAdminPassword()">确认</button>
@@ -527,7 +527,6 @@
   
   <div class="container">
     <div class="header">蓝山爱眼城工作日志</div>
-
 
     <div class="content-area">
       <div class="log-container">
@@ -713,9 +712,17 @@
       localStorage.removeItem('selectedLogStore');
       window.currentLogStoreId = null;
       alert('门店选择已清除，正在返回门店选择页面...');
+      
+      // 重新初始化门店选择界面
       initLogStoreButtons();
       document.getElementById('monthSelection').classList.add('hidden');
       document.getElementById('logStoreSelection').classList.remove('hidden');
+      
+      // 恢复标题
+      const logTitle = document.getElementById('logTitle');
+      if (logTitle) {
+        logTitle.textContent = '2026年工作日志';
+      }
     }
 
     // 设置点击监听
@@ -725,9 +732,13 @@
       if (logTitle) {
         logTitle.onclick = function() {
           clickCounter.count++;
+          
+          // 清除之前的定时器
           if (clickCounter.timer) {
             clearTimeout(clickCounter.timer);
           }
+          
+          // 设置新的定时器，2秒内未达到5次则重置计数
           clickCounter.timer = setTimeout(() => {
             clickCounter.count = 0;
           }, 2000);
@@ -735,6 +746,7 @@
           if (clickCounter.count >= 5) {
             showClearHint();
             showAdminModal();
+            // 重置计数
             clickCounter.count = 0;
           }
         };
@@ -757,6 +769,8 @@
 
     function initLogStoreButtons() {
       const container = document.getElementById('logStoreSelection');
+      if (!container) return; // 确保容器存在
+      
       container.innerHTML = '';
       LOG_STORES.forEach(store => {
         const btn = document.createElement('button');
@@ -777,8 +791,9 @@
 
     function showLogMonthSelection(storeId) {
       const store = LOG_STORES.find(s => s.id === storeId);
-      if (store) {
-        document.getElementById('logTitle').textContent = `${store.name} 2026年工作日志`;
+      const logTitle = document.getElementById('logTitle');
+      if (logTitle && store) {
+        logTitle.textContent = `${store.name} 2026年工作日志`;
       }
       document.getElementById('logStoreSelection').classList.add('hidden');
       document.getElementById('monthSelection').classList.remove('hidden');
@@ -790,6 +805,8 @@
 
     function renderLogMonthButtons() {
       const container = document.getElementById('monthButtons');
+      if (!container) return; // 确保容器存在
+      
       container.innerHTML = '';
       LOG_MONTHS.forEach(month => {
         const btn = document.createElement('button');
@@ -802,6 +819,8 @@
     }
 
     function openLogLink(storeId, monthId, btnEl) {
+      if (!btnEl) return; // 确保按钮元素存在
+      
       const url = LOG_LINKS[storeId]?.[monthId];
       if (!url) {
         alert("该组合暂无日志链接");
